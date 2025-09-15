@@ -1,0 +1,31 @@
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+    embedding:
+      model: openai
+      options:
+        model: text-embedding-ada-002  # 1536-dimension embeddings from OpenAI
+
+    # Ollama for local chat LLMs
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: gemma3:4b
+
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        embedding-dimensions: 1536  # Explicitly set to avoid fallback 404 error
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/chicagoguide
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
