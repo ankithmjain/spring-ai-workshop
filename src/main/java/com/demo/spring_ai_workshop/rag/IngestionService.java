@@ -33,35 +33,40 @@ public class IngestionService implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
-        var pdfReader = new PagePdfDocumentReader(chicagoCityTouristPDF);
-        TextSplitter textSplitter = new TokenTextSplitter();
-        var rawDocuments = textSplitter.apply(pdfReader.get());
+    public void run(String... args) {
+        try {
+            var pdfReader = new PagePdfDocumentReader(chicagoCityTouristPDF);
+            TextSplitter textSplitter = new TokenTextSplitter();
+            var rawDocuments = textSplitter.apply(pdfReader.get());
 
-        List<Document> cleanedDocuments = new ArrayList<>();
-        String fileName = chicagoCityTouristPDF.getFilename();
+            List<Document> cleanedDocuments = new ArrayList<>();
+            String fileName = chicagoCityTouristPDF.getFilename();
 
-        for (Document doc : rawDocuments) {
-            String originalText = doc.getText();
-            String cleanedText = cleanText(originalText);
+            for (Document doc : rawDocuments) {
+                String originalText = doc.getText();
+                String cleanedText = cleanText(originalText);
 
-            // Generate content-based doc ID (to avoid duplicates)
-            String docId = DigestUtils.md5DigestAsHex(cleanedText.getBytes());
+                // Generate content-based doc ID (to avoid duplicates)
+                String docId = DigestUtils.md5DigestAsHex(cleanedText.getBytes());
 
-            // Create a new metadata map combining original metadata and new fields
-            Map<String, Object> newMetadata = new HashMap<>(doc.getMetadata());
-            newMetadata.put("doc-id", docId);
-            newMetadata.put("file_name", fileName);
-            newMetadata.put("source", "Chicago 2025 Guide");
+                // Create a new metadata map combining original metadata and new fields
+                Map<String, Object> newMetadata = new HashMap<>(doc.getMetadata());
+                newMetadata.put("doc-id", docId);
+                newMetadata.put("file_name", fileName);
+                newMetadata.put("source", "Chicago 2025 Guide");
 
-            // Create a new Document with cleaned text and updated metadata
-            Document cleanedDoc = new Document(cleanedText, newMetadata);
+                // Create a new Document with cleaned text and updated metadata
+                Document cleanedDoc = new Document(cleanedText, newMetadata);
 
-            cleanedDocuments.add(cleanedDoc);
+                cleanedDocuments.add(cleanedDoc);
+            }
+
+            vectorStore.accept(cleanedDocuments);
+            log.info("VectorStore loaded with {} cleaned documents.", cleanedDocuments.size());
+        } catch (Exception e) {
+            log.error("Error during ingestion process", e);
+            throw new RuntimeException("Failed to ingest documents", e);
         }
-
-        vectorStore.accept(cleanedDocuments);
-        log.info("VectorStore loaded with {} cleaned documents.", cleanedDocuments.size());
     }
 
 
