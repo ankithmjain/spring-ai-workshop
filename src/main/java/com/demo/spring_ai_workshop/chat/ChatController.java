@@ -4,31 +4,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Flux;
-import org.springframework.ai.document.Document;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/chat")
 public class ChatController {
     private static final Logger log = LoggerFactory.getLogger(ChatController.class);
 
     private final ChatClient chatClient;
+    private final VectorStore vectorStore;
 
-    public ChatController(ChatClient.Builder chatClientBuilder) {
-        this.chatClient = chatClientBuilder
-                .build();
+    public ChatController(ChatClient.Builder chatClientBuilder, VectorStore vectorStore) {
+        this.chatClient = chatClientBuilder.build();
+        this.vectorStore = vectorStore;
     }
-
-    @Autowired
-    private VectorStore vectorStore;
 
     @GetMapping("/gen-ai")
     String generation(@RequestParam String userInput) {
@@ -38,7 +35,7 @@ public class ChatController {
                 .content();
     }
 
-    @GetMapping("chicity-gen-ai")
+    @GetMapping("/city-guide")
     public Flux<String> chicagoAIGuide(@RequestParam(value = "message", defaultValue = "You are my Chicago Tourist AI Assistant") String message) {
         return chatClient.prompt()
                 .user(message)
@@ -46,7 +43,7 @@ public class ChatController {
                 .content();
     }
 
-    @GetMapping("chicago-tourist-ai-with-guard-rails")
+    @GetMapping("/tourist-guide-with-guard-rails")
     public Flux<String> chicagoAIGuideWithGuardRails(@RequestParam(value = "message", defaultValue = "You are my Chicago Tourist Virtual AI Assistant") String message) {
         String systemMsg = """
                 You are “Chicago City AI Assistant,” a friendly, concise guide for travelers in Chicago, Illinois (USA).
@@ -91,7 +88,7 @@ public class ChatController {
                 .content();
     }
 
-    @GetMapping("chicago-tourist-ai-with-model-details")
+    @GetMapping("/tourist-guide-with-model-details")
     public ChatResponse jokeWithResponse(@RequestParam(value = "message", defaultValue = "You are my Chicago Tourist Virtual AI Assistant") String message) {
         return chatClient.prompt()
                 .user(message)
@@ -99,8 +96,7 @@ public class ChatController {
                 .chatResponse();
     }
 
-
-    @GetMapping("chicago-tourist-ai-with-rag")
+    @GetMapping("/tourist-guide-with-rag")
     public List<Document> chicagoGuideWithRAGResponse(
             @RequestParam(value = "message", defaultValue = "You are my Chicago Tourist Virtual AI Assistant") String message) {
         return vectorStore.similaritySearch(message);

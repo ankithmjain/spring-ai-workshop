@@ -32,13 +32,6 @@ public class IngestionService implements CommandLineRunner {
         this.vectorStore = vectorStore;
     }
 
-    //    @Override
-//    public void run(String... args) throws Exception {
-//        var pdfReader = new PagePdfDocumentReader(chicagoCityTouristPDF);
-//        TextSplitter textSplitter = new TokenTextSplitter();
-//        vectorStore.accept(textSplitter.apply(pdfReader.get()));
-//        log.info("VectorStore Loaded with data!");
-//    }
     @Override
     public void run(String... args) throws Exception {
         var pdfReader = new PagePdfDocumentReader(chicagoCityTouristPDF);
@@ -77,8 +70,6 @@ public class IngestionService implements CommandLineRunner {
      */
     private String cleanText(String text) {
         return text
-//                .replaceAll("[ \\t]{2,}", " ")          // Collapse multiple spaces
-           //     .replaceAll("[\\n\\r]{2,}", "\n")       // Normalize multiple line breaks
                 .replaceAll("\\s+$", "")                // Trim trailing whitespace
                 .trim();
     }

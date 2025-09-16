@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 public class RagController {
@@ -43,15 +42,16 @@ public class RagController {
      * fixing common ligatures, and truncating if too long.
      */
     private String cleanText(String text) {
-            if (text == null) return "";
+        if (text == null) return "";
 
-            // Replace multiple whitespace chars with single space
-            String cleaned = text.replaceAll("\\s+", " ").trim();
+        // Replace multiple whitespace chars with single space
+        String cleaned = text.replaceAll("\\s+", " ").trim();
 
-            // Optionally fix ligatures or OCR errors here
+        // Optionally fix ligatures or OCR errors here
 
-            return cleaned;
-        }
-
+        return cleaned;
     }
+
+}
+
 
