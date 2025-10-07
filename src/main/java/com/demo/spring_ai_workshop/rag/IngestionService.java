@@ -12,12 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
-import org.springframework.util.DigestUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Configuration
 public class IngestionService implements CommandLineRunner {
@@ -25,7 +22,7 @@ public class IngestionService implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(IngestionService.class);
     private final VectorStore vectorStore;
 
-    @Value("classpath:/docs/chicago2025guide.pdf")
+    @Value("classpath:/docs/chicago2025travelguide.pdf")
     private Resource chicagoCityTouristPDF;
 
     public IngestionService(VectorStore vectorStore) {
@@ -37,6 +34,7 @@ public class IngestionService implements CommandLineRunner {
         try {
             var pdfReader = new PagePdfDocumentReader(chicagoCityTouristPDF);
             TextSplitter textSplitter = new TokenTextSplitter();
+
             var rawDocuments = textSplitter.apply(pdfReader.get());
 
             List<Document> cleanedDocuments = new ArrayList<>();
@@ -44,20 +42,8 @@ public class IngestionService implements CommandLineRunner {
 
             for (Document doc : rawDocuments) {
                 String originalText = doc.getText();
-                String cleanedText = cleanText(originalText);
-
-                // Generate content-based doc ID (to avoid duplicates)
-                String docId = DigestUtils.md5DigestAsHex(cleanedText.getBytes());
-
-                // Create a new metadata map combining original metadata and new fields
-                Map<String, Object> newMetadata = new HashMap<>(doc.getMetadata());
-                newMetadata.put("doc-id", docId);
-                newMetadata.put("file_name", fileName);
-                newMetadata.put("source", "Chicago 2025 Guide");
-
                 // Create a new Document with cleaned text and updated metadata
-                Document cleanedDoc = new Document(cleanedText, newMetadata);
-
+                Document cleanedDoc = new Document(originalText, doc.getMetadata());
                 cleanedDocuments.add(cleanedDoc);
             }
 
@@ -67,16 +53,6 @@ public class IngestionService implements CommandLineRunner {
             log.error("Error during ingestion process", e);
             throw new RuntimeException("Failed to ingest documents", e);
         }
-    }
-
-
-    /**
-     * Utility to normalize and clean text before ingestion.
-     */
-    private String cleanText(String text) {
-        return text
-                .replaceAll("\\s+$", "")                // Trim trailing whitespace
-                .trim();
     }
 
 

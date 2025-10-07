@@ -9,6 +9,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -29,15 +30,30 @@ public class RagController {
 
     @GetMapping("/rag/chicago-tourist-ai-with-rag")
     public List<Document> chicagoGuideWithRAGResponse(@RequestParam(value = "message", defaultValue = "You are my Chicago Tourist Virtual AI Assistant") String message) {
-        return vectorStore.similaritySearch(message);
+        List<Document> docs = vectorStore.similaritySearch(message);
+        for (int i = 0; i < docs.size(); i++) {
+            Document doc = docs.get(i);
+            String cleaned = cleanText(doc.getText());
+            docs.set(i, new Document(cleaned, doc.getMetadata()));
+        }
+        return docs;
     }
 
     private String cleanText(String text) {
         if (text == null) return "";
 
-        // Replace multiple whitespace chars with single space
-        String cleaned = text.replaceAll("\\s+", " ").trim();
-        return cleaned;
+        return text.replaceAll("\\s+", " ")  // collapse all extra whitespace/newlines
+                .replaceAll("(?m)^[ \t]+", "") // trim leading spaces in lines
+                .trim();
+    }
+
+    @GetMapping("/rag/chicago-ai")
+    public Flux<String> ragChicagoAI(@RequestParam(value = "message", defaultValue = "You are my Chicago Tourist Virtual AI Assistant") String message) {
+
+        return chatClient.prompt()
+                .user(message)
+                .stream()
+                .content();
     }
 
 }
