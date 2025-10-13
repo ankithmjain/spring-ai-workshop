@@ -32,21 +32,23 @@ public class IngestionService implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
+            String filename = chicagoCityTouristPDF.getFilename();
             var pdfReader = new PagePdfDocumentReader(chicagoCityTouristPDF);
-            TextSplitter textSplitter = new TokenTextSplitter();
 
+            TextSplitter textSplitter = new TokenTextSplitter();
             var rawDocuments = textSplitter.apply(pdfReader.get());
 
-            List<Document> cleanedDocuments = new ArrayList<>();
-            String fileName = chicagoCityTouristPDF.getFilename();
-
-            for (Document doc : rawDocuments) {
-                String originalText = doc.getText();
-                // Create a new Document with cleaned text and updated metadata
-                Document cleanedDoc = new Document(originalText, doc.getMetadata());
-                cleanedDocuments.add(cleanedDoc);
+            if (rawDocuments.isEmpty()) {
+                log.warn("No documents were extracted from PDF: {}", filename);
             }
-
+            List<Document> cleanedDocuments = new ArrayList<>(
+                    rawDocuments.stream()
+                            .map(doc -> new Document(
+                                    doc.getText() == null ? "" : doc.getText().strip(),
+                                    doc.getMetadata()))
+                            .toList()
+            );
+            log.info("Ingesting cleaned documents into VectorStore...");
             vectorStore.accept(cleanedDocuments);
             log.info("VectorStore loaded with {} cleaned documents.", cleanedDocuments.size());
         } catch (Exception e) {
@@ -54,6 +56,5 @@ public class IngestionService implements CommandLineRunner {
             throw new RuntimeException("Failed to ingest documents", e);
         }
     }
-
 
 }
