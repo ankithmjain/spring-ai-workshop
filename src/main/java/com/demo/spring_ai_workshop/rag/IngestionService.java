@@ -22,7 +22,7 @@ public class IngestionService implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(IngestionService.class);
     private final VectorStore vectorStore;
 
-    @Value("classpath:/docs/chicago2025travelguide.pdf")
+    @Value("classpath:/docs/chicagotravelguide.pdf")
     private Resource chicagoCityTouristPDF;
 
     public IngestionService(VectorStore vectorStore) {

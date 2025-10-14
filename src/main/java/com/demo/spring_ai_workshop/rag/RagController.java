@@ -31,11 +31,7 @@ public class RagController {
     @GetMapping("/rag/chicago-tourist-ai-with-rag")
     public List<Document> chicagoGuideWithRAGResponse(@RequestParam(value = "message", defaultValue = "You are my Chicago Tourist Virtual AI Assistant") String message) {
         List<Document> docs = vectorStore.similaritySearch(message);
-        for (int i = 0; i < docs.size(); i++) {
-            Document doc = docs.get(i);
-            String cleaned = cleanText(doc.getText());
-            docs.set(i, new Document(cleaned, doc.getMetadata()));
-        }
+        docs.replaceAll(doc -> new Document(cleanText(doc.getText()), doc.getMetadata()));
         return docs;
     }
 
