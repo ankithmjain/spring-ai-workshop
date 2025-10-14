@@ -20,7 +20,7 @@ This project demonstrates Spring AI integration with various language models, sh
 ## Getting Started
 
 1. Clone this repository
-2. Configure your database in `application.properties`
+2. Configure your database in `application.yml` refer https://github.com/pgvector/pgvector
 3. Run the application with `./gradlew bootRun`
 
 ## API Endpoints
